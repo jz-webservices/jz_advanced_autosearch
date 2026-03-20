@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Assets werden über __manifest__.py 'assets' Key geladen.
+        Diese Datei ist nur als Placeholder/Fallback vorhanden.
+        In Odoo 17+ ist die Registrierung via __manifest__.py der
+        empfohlene Weg.
+    -->
+</odoo>
