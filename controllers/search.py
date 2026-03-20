@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import http
 from odoo.http import request
-import json
 
 
 class TophygieneProductSearch(http.Controller):
@@ -20,8 +19,8 @@ class TophygieneProductSearch(http.Controller):
         Gibt Produkte zurück, die 'query' im Namen enthalten,
         gruppiert nach Kategorie.
         """
-        if not query or len(query.strip()) < 2:
-            return {'products': [], 'categories': []}
+        if not query or len(query.strip()) < 1:
+            return {'products': [], 'categories': [], 'total_count': 0}
 
         query = query.strip()
         website = request.website
@@ -33,9 +32,13 @@ class TophygieneProductSearch(http.Controller):
             ('sale_ok', '=', True),
         ]
 
-        # Produkte laden
+        # Produkte laden + Gesamtanzahl ermitteln
         Product = request.env['product.template'].sudo()
+        total_count = Product.search_count(domain)
         products = Product.search(domain, limit=limit)
+
+        currency = website.currency_id
+        currency_symbol = currency.symbol or '€'
 
         # Kategorien extrahieren (für die Kategorieseiten-Navigation)
         categories_seen = {}
@@ -56,14 +59,20 @@ class TophygieneProductSearch(http.Controller):
             # Bild-URL aufbauen (thumbnail aus bestehenden Produktbildern)
             image_url = '/web/image/product.template/%d/image_128' % p.id
 
-            # Preis mit Pricelist
-            price = p.list_price
-            currency_symbol = website.currency_id.symbol or '€'
+            # Preis exkl. und inkl. MwSt. berechnen
+            price_excl = p.list_price
+            taxes = p.taxes_id.filtered(lambda t: t.company_id == request.env.company)
+            if taxes:
+                tax_res = taxes.compute_all(price_excl, currency, 1, product=p)
+                price_incl = tax_res['total_included']
+            else:
+                price_incl = price_excl
 
             product_list.append({
                 'id': p.id,
                 'name': p.name,
-                'price': '%.2f %s' % (price, currency_symbol),
+                'price_excl': '%.2f %s' % (price_excl, currency_symbol),
+                'price_incl': '%.2f %s' % (price_incl, currency_symbol),
                 'image_url': image_url,
                 'product_url': '/shop/%s-%d' % (
                     p.name.lower().replace(' ', '-').replace('/', '-'),
@@ -91,4 +100,5 @@ class TophygieneProductSearch(http.Controller):
             'products': product_list,
             'categories': categories,
             'total_url': all_results_url,
+            'total_count': total_count,
         }

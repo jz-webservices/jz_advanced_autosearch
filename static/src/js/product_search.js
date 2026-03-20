@@ -30,6 +30,7 @@ export class TophygieneSearchBar extends Component {
             results: [],
             categories: [],
             totalUrl: "/shop",
+            totalCount: 0,
             isOpen: false,
             isLoading: false,
         });
@@ -73,7 +74,7 @@ export class TophygieneSearchBar extends Component {
             clearTimeout(this._debounceTimer);
         }
 
-        if (!query || query.trim().length < 2) {
+        if (!query || query.trim().length < 1) {
             this.state.isOpen = false;
             this.state.results = [];
             this.state.categories = [];
@@ -128,6 +129,7 @@ export class TophygieneSearchBar extends Component {
                 this.state.results = result.products || [];
                 this.state.categories = result.categories || [];
                 this.state.totalUrl = result.total_url || ("/shop?search=" + encodeURIComponent(query));
+                this.state.totalCount = result.total_count || 0;
             }
         } catch (error) {
             console.error("[TophygieneSearch] Fehler beim Laden der Produkte:", error);

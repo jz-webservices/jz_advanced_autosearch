@@ -234,11 +234,23 @@
     text-overflow: ellipsis;
 }
 
-.o_tophygiene_search_product_price {
+.o_tophygiene_search_product_prices {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-top: 2px;
+}
+
+.o_tophygiene_search_product_price_excl {
+    font-size: 11px;
+    color: #9ba8bb;
+    text-decoration: line-through;
+}
+
+.o_tophygiene_search_product_price_incl {
     font-size: 13px;
     font-weight: 600;
     color: #0073e6;
-    margin-top: 2px;
 }
 
 /* Pfeil */

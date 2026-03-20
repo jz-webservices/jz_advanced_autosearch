@@ -54,7 +54,7 @@
                 <!-- Keine Ergebnisse -->
                 <div
                     class="o_tophygiene_search_empty"
-                    t-elif="!state.isLoading and state.results.length === 0 and state.query.length >= 2"
+                    t-elif="!state.isLoading and state.results.length === 0 and state.query.length >= 1"
                 >
                     <span>Keine Produkte gefunden für "<strong t-esc="state.query"/>"</span>
                 </div>
@@ -95,8 +95,12 @@
                                           t-esc="product.name"/>
                                     <span class="o_tophygiene_search_product_categ"
                                           t-esc="product.categ_name"/>
-                                    <span class="o_tophygiene_search_product_price"
-                                          t-esc="product.price"/>
+                                    <div class="o_tophygiene_search_product_prices">
+                                        <span class="o_tophygiene_search_product_price_excl"
+                                              t-esc="product.price_excl + ' exkl. MwSt.'"/>
+                                        <span class="o_tophygiene_search_product_price_incl"
+                                              t-esc="product.price_incl + ' inkl. MwSt.'"/>
+                                    </div>
                                 </div>
                                 <!-- Pfeil -->
                                 <svg class="o_tophygiene_search_arrow"
@@ -116,7 +120,7 @@
                         class="o_tophygiene_search_footer"
                         t-att-href="state.totalUrl"
                     >
-                        Alle Ergebnisse für "<strong t-esc="state.query"/>" anzeigen →
+                        ALLE ANZEIGEN (<t t-esc="state.totalCount"/>)
                     </a>
 
                 </t>
