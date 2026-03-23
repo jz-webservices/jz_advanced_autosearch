@@ -1,10 +1,10 @@
-# tophygiene_search
+# jz_advanced_autosearch
 
 Odoo 19.0 Modul — Asynchrone Live-Produktsuche im eCommerce-Shop.
 
 ## Funktion
 
-- JSON-Route `/tophygiene/search/products` liefert Produkte + Kategorien als JSON zurück
+- JSON-Route `/jz_advanced_autosearch/search/products` liefert Produkte + Kategorien als JSON zurück
 - Filtert nur `website_published = True` Produkte
 - Suche mit `ilike` (case-insensitive)
 - Kategorie-URLs werden direkt mit `?category=X&search=Y` aufgebaut → User landet auf gefilterter Shopseite mit nativen Odoo-Produktkarten
@@ -48,12 +48,12 @@ Falls keine eCommerce-Kategorien angelegt sind, ist `public_categ_ids` leer. Der
 ## Dateistruktur
 
 ```
-tophygiene_search/
+jz_advanced_autosearch/
 ├── __manifest__.py
 ├── __init__.py
 ├── controllers/
 │   ├── __init__.py
-│   └── search.py              # JSON-Route /tophygiene/search/products
+│   └── search.py              # JSON-Route /jz_advanced_autosearch/search/products
 ├── static/src/
 │   ├── js/
 │   │   └── product_search.js  # OWL-Component + Form-Mount-Logik

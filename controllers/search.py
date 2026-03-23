@@ -3,10 +3,10 @@ from odoo import http
 from odoo.http import request
 
 
-class TophygieneProductSearch(http.Controller):
+class JzAdvancedSearchProductSearch(http.Controller):
 
     @http.route(
-        '/tophygiene/search/products',
+        '/jz_advanced_autosearch/search/products',
         type='json',
         auth='public',
         methods=['POST'],
