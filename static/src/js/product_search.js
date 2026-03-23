@@ -89,11 +89,16 @@ function escHtml(str) {
 // Haupt-Init: hört auf bestehendes Native-Input, zeigt eigenes Dropdown
 // -------------------------------------------------------------------------
 function initTophygieneSearch() {
-    // Alle möglichen Odoo eCommerce Suchfelder
+    // Alle möglichen Odoo eCommerce Suchfelder (inkl. Odoo 19 OWL-Selektoren)
     const selectors = [
+        ".o_searchbar_form input.o_searchbar_input",
+        ".o_searchbar_form input[name='search']",
         "form.o_wsale_products_searchbar_form input[name='search']",
+        "form.o_wsale_products_searchbar_form input",
         ".o_website_search_form input[name='search']",
         "form[action='/shop'] input[name='search']",
+        "form[action='/shop'] input",
+        ".s_searchbar input",
         "form input[name='search']",
     ];
 
@@ -175,9 +180,29 @@ function initTophygieneSearch() {
     }, true);
 }
 
-// DOM Ready
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initTophygieneSearch);
-} else {
+// DOM Ready + MutationObserver falls OWL das Input erst später rendert
+function tryInit() {
     initTophygieneSearch();
 }
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", tryInit);
+} else {
+    tryInit();
+}
+
+// MutationObserver: falls Input durch OWL erst später in den DOM kommt
+const observer = new MutationObserver(() => {
+    const input = document.querySelector(
+        ".o_searchbar_form input.o_searchbar_input, " +
+        ".o_searchbar_form input[name='search'], " +
+        "form.o_wsale_products_searchbar_form input, " +
+        "form[action='/shop'] input, " +
+        ".s_searchbar input, " +
+        "form input[name='search']"
+    );
+    if (input && !input.dataset.tophygieneSearch) {
+        initTophygieneSearch();
+    }
+});
+observer.observe(document.body, { childList: true, subtree: true });
