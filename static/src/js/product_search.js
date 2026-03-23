@@ -199,7 +199,8 @@ function _injectSearchWidget(form) {
     // Container für OWL-Widget erstellen
     const container = document.createElement("div");
     container.className = "o_tophygiene_search_mount";
-    form.innerHTML = ""; // Native Form leeren
+    // Native Kindelemente verstecken (nicht löschen!) damit Odoo-Referenzen erhalten bleiben
+    Array.from(form.children).forEach(el => (el.style.display = "none"));
     form.appendChild(container);
 
     // OWL App mounten
