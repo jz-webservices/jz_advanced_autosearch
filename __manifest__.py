@@ -15,7 +15,6 @@
     'assets': {
         'web.assets_frontend': [
             'tophygiene_search/static/src/css/product_search.css',
-            'tophygiene_search/static/src/xml/search_widget.xml',
             'tophygiene_search/static/src/js/product_search.js',
         ],
     },
