@@ -3,7 +3,7 @@
     'name': 'Tophygiene – Async Product Search',
     'version': '19.0.1.0.0',
     'summary': 'Asynchrone Live-Produktsuche im eCommerce-Shop',
-    'author': 'Tophygiene',
+    'author': 'JZWebservices',
     'category': 'Website/eCommerce',
     'depends': [
         'website_sale',
