@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'JZ Advanced Autosearch – Async Product Search',
-    'version': '19.0.1.4.0',
+    'version': '19.0.1.5.0',
     'summary': 'Asynchrone Live-Produktsuche im eCommerce-Shop',
     'author': 'JZWebservices',
     'category': 'Website/eCommerce',
