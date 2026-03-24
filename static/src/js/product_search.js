@@ -15,29 +15,53 @@ function rpcBody(params) {
 }
 
 async function searchProducts(query, limit) {
-    // 1. Custom Python Route — auth=public, funktioniert für alle Besucher
+    const n = limit || 8;
+
+    // 1. Custom Python Route (auth=public, sudo) — beste Option wenn registriert
     try {
         const r = await fetch('/jz_advanced_autosearch/search/products', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: rpcBody({ query, limit: limit || 8 }),
+            body: rpcBody({ query, limit: n }),
         });
         const d = await r.json();
-        if (Array.isArray(d.result)) return d.result;
-    } catch (_) { /* Route nicht verfügbar, Fallback */ }
+        if (!d.error && Array.isArray(d.result)) return d.result;
+    } catch (_) {}
 
-    // 2. Fallback: call_kw — nur für eingeloggte User
+    // 2. Odoo native Autocomplete (auth=public, immer verfügbar in Odoo 17+)
+    try {
+        const r = await fetch('/website/snippet/autocomplete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: rpcBody({
+                search_type: 'products',
+                term: query,
+                limit: n,
+                options: { displayDescription: false, displayImage: true, displayPrice: true },
+            }),
+        });
+        const d = await r.json();
+        if (!d.error && d.result && Array.isArray(d.result.results)) {
+            return d.result.results.map(p => ({
+                id: p.id || 0,
+                name: p.name || '',
+                list_price: null,
+                price_formatted: p.price || '',
+                website_url: p.url || p.website_url || '/shop',
+            }));
+        }
+    } catch (_) {}
+
+    // 3. call_kw Fallback (nur eingeloggte User)
     const r = await fetch('/web/dataset/call_kw', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         body: rpcBody({
-            model: 'product.template',
-            method: 'search_read',
-            args: [],
+            model: 'product.template', method: 'search_read', args: [],
             kwargs: {
                 domain: [['name', 'ilike', query], ['sale_ok', '=', true], ['is_published', '=', true]],
                 fields: ['name', 'list_price', 'website_url'],
-                limit: limit || 8,
+                limit: n,
             },
         }),
     });
@@ -58,7 +82,9 @@ function buildDropdown(records, query, totalUrl) {
 
     const productsHtml = records.map(p => {
         const url = p.website_url || ('/shop/' + p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + p.id);
-        const price = typeof p.list_price === 'number' ? p.list_price.toFixed(2) + ' €' : '';
+        const price = typeof p.list_price === 'number'
+            ? p.list_price.toFixed(2) + ' €'
+            : (p.price_formatted || '');
         return `
         <a class="o_jzas_search_product_item" href="${escHtml(url)}">
             <div class="o_jzas_search_product_img">
