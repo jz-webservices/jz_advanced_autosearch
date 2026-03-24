@@ -25,11 +25,12 @@ class JzAdvancedSearchProductSearch(http.Controller):
         query = query.strip()
         website = request.website
 
-        # Domain: nur veröffentlichte Produkte der aktuellen Website
-        # Odoo 17+ verwendet is_published statt website_published
+        # Domain: veröffentlichte Produkte der aktuellen Website oder global
         domain = [
             ('is_published', '=', True),
-            ('website_id', 'in', [False, website.id]),
+            '|',
+            ('website_id', '=', False),
+            ('website_id', '=', website.id),
             ('name', 'ilike', query),
             ('sale_ok', '=', True),
         ]
@@ -81,7 +82,7 @@ class JzAdvancedSearchProductSearch(http.Controller):
                 'price_excl': '%.2f %s' % (price_excl, currency_symbol),
                 'price_incl': '%.2f %s' % (price_incl, currency_symbol),
                 'image_url': image_url,
-                'product_url': p.website_url if hasattr(p, 'website_url') and p.website_url else '/shop/%s-%d' % (
+                'product_url': getattr(p, 'website_url', None) or '/shop/%s-%d' % (
                     p.name.lower().replace(' ', '-').replace('/', '-'),
                     p.id
                 ),
