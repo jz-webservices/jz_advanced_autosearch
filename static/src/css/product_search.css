@@ -254,8 +254,7 @@ header .o_searchbar_form [class*='o_search_result'] {
 
 .o_jzas_search_product_price_excl {
     font-size: 13px;
-    font-weight: 700;
-    color: #e05000;
+    color: #1a1a2e;
     text-decoration: none;
 }
 
