@@ -153,7 +153,11 @@ function initJzAdvancedSearch() {
             }
         } catch (e) {
             console.error("[JzAdvancedSearch] Fehler:", e);
-            closeDropdown();
+            dropdown.style.display = "block";
+            dropdown.innerHTML = `<div class="o_jzas_search_empty">
+                Suche momentan nicht verfügbar —
+                <a href="/shop?search=${encodeURIComponent(query)}">Alle Ergebnisse anzeigen</a>
+            </div>`;
         }
     }
 
