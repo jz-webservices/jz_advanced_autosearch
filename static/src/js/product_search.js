@@ -33,29 +33,39 @@ async function searchProducts(query, limit) {
         console.warn('[JzAS] Methode 1 fehlgeschlagen:', d.error || 'kein Array');
     } catch (e) { console.warn('[JzAS] Methode 1 Exception:', e.message); }
 
-    // 2. Odoo native /website/snippet/autocomplete (auth=public)
+    // 2. Odoo native /website/snippet/autocomplete (auth=public, Odoo 19)
     try {
         const r = await fetch('/website/snippet/autocomplete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: rpcBody({
-                search_type: 'products',
+                search_type: 'all',
                 term: query,
                 limit: n,
-                options: { displayDescription: false, displayImage: true, displayPrice: true },
+                order: 'name asc',
+                options: {
+                    displayDescription: false,
+                    displayImage: true,
+                    displayExtraLink: false,
+                    displayDetail: true,
+                    displayExtraPrice: false,
+                    allowFuzzy: true,
+                },
             }),
         });
         console.log('[JzAS] Methode 2 HTTP Status:', r.status);
         const d = await r.json();
-        console.log('[JzAS] Methode 2 Response:', JSON.stringify(d).slice(0, 300));
         if (!d.error && d.result && Array.isArray(d.result.results)) {
-            console.log('[JzAS] Methode 2 OK:', d.result.results.length, 'Produkte');
-            return d.result.results.map(p => ({
-                id: p.id || 0,
-                name: p.name || '',
+            // Nur Produkte (fa-shopping-cart), keine Kategorien (fa-folder-o)
+            const products = d.result.results.filter(r => r._fa === 'fa-shopping-cart');
+            console.log('[JzAS] Methode 2 OK:', products.length, 'Produkte');
+            return products.map(p => ({
+                id: 0,
+                name: _stripHtml(p.name || ''),
                 list_price: null,
-                price_formatted: p.price || '',
-                website_url: p.url || p.website_url || '/shop',
+                price_formatted: _stripHtml(p.detail || ''),
+                image_url: p.image_url || '',
+                website_url: p.website_url || '/shop',
             }));
         }
         console.warn('[JzAS] Methode 2 unbekanntes Format:', d);
@@ -101,10 +111,11 @@ function buildDropdown(records, query, totalUrl) {
         const price = typeof p.list_price === 'number'
             ? p.list_price.toFixed(2) + ' €'
             : (p.price_formatted || '');
+        const imgSrc = p.image_url || ('/web/image/product.template/' + p.id + '/image_128');
         return `
         <a class="o_jzas_search_product_item" href="${escHtml(url)}">
             <div class="o_jzas_search_product_img">
-                <img src="/web/image/product.template/${p.id}/image_128" alt="${escHtml(p.name)}" loading="lazy"/>
+                <img src="${escHtml(imgSrc)}" alt="${escHtml(p.name)}" loading="lazy"/>
             </div>
             <div class="o_jzas_search_product_info">
                 <span class="o_jzas_search_product_name">${escHtml(p.name)}</span>
@@ -125,6 +136,12 @@ function buildDropdown(records, query, totalUrl) {
     </a>`;
 
     return `<div class="o_jzas_search_products">${productsHtml}</div>` + footerHtml;
+}
+
+function _stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent.trim();
 }
 
 function escHtml(str) {
