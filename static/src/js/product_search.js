@@ -8,38 +8,42 @@
  */
 
 // -------------------------------------------------------------------------
-// Produkte via Odoo call_kw suchen (kein custom Route nötig)
+// Produkte suchen: Python-Route (auth=public) mit call_kw Fallback
 // -------------------------------------------------------------------------
+function rpcBody(params) {
+    return JSON.stringify({ jsonrpc: '2.0', method: 'call', id: Math.random() * 1e9 | 0, params });
+}
+
 async function searchProducts(query, limit) {
-    const response = await fetch('/web/dataset/call_kw', {
+    // 1. Custom Python Route — auth=public, funktioniert für alle Besucher
+    try {
+        const r = await fetch('/jz_advanced_autosearch/search/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: rpcBody({ query, limit: limit || 8 }),
+        });
+        const d = await r.json();
+        if (Array.isArray(d.result)) return d.result;
+    } catch (_) { /* Route nicht verfügbar, Fallback */ }
+
+    // 2. Fallback: call_kw — nur für eingeloggte User
+    const r = await fetch('/web/dataset/call_kw', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-            jsonrpc: '2.0',
-            method: 'call',
-            id: Math.floor(Math.random() * 1e9),
-            params: {
-                model: 'product.template',
-                method: 'search_read',
-                args: [],
-                kwargs: {
-                    domain: [
-                        ['name', 'ilike', query],
-                        ['sale_ok', '=', true],
-                        ['is_published', '=', true],
-                    ],
-                    fields: ['name', 'list_price', 'website_url', 'categ_id'],
-                    limit: limit || 8,
-                },
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: rpcBody({
+            model: 'product.template',
+            method: 'search_read',
+            args: [],
+            kwargs: {
+                domain: [['name', 'ilike', query], ['sale_ok', '=', true], ['is_published', '=', true]],
+                fields: ['name', 'list_price', 'website_url'],
+                limit: limit || 8,
             },
         }),
     });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.data && data.error.data.message || data.error.message);
-    return data.result || [];
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message || 'Suche fehlgeschlagen');
+    return d.result || [];
 }
 
 // -------------------------------------------------------------------------

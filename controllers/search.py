@@ -79,15 +79,11 @@ class JzAdvancedSearchProductSearch(http.Controller):
             product_list.append({
                 'id': p.id,
                 'name': p.name,
-                'price_excl': '%.2f %s' % (price_excl, currency_symbol),
-                'price_incl': '%.2f %s' % (price_incl, currency_symbol),
-                'image_url': image_url,
-                'product_url': getattr(p, 'website_url', None) or '/shop/%s-%d' % (
+                'list_price': price_excl,
+                'website_url': getattr(p, 'website_url', None) or '/shop/%s-%d' % (
                     p.name.lower().replace(' ', '-').replace('/', '-'),
                     p.id
                 ),
-                'categ_id': categ_id,
-                'categ_name': categ_name,
             })
 
             # Kategorie für Schnellfilter sammeln
@@ -104,9 +100,4 @@ class JzAdvancedSearchProductSearch(http.Controller):
             {'id': 0, 'name': 'Alle Ergebnisse', 'url': all_results_url}
         ] + list(categories_seen.values())
 
-        return {
-            'products': product_list,
-            'categories': categories,
-            'total_url': all_results_url,
-            'total_count': total_count,
-        }
+        return product_list
