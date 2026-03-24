@@ -2,6 +2,14 @@
    JzAdvancedSearch – Async Product Search Widget
    ============================================================= */
 
+/* Native Odoo Autocomplete-Dropdown unterdrücken */
+.o_searchbar_autocomplete,
+.o_website_searchbar_autocomplete,
+ul.o_searchbar_autocomplete,
+.s_searchbar_input .o_searchbar_autocomplete {
+    display: none !important;
+}
+
 /* Wrapper */
 .o_jzas_search_wrapper {
     position: relative;
