@@ -16,8 +16,9 @@ function rpcBody(params) {
 
 async function searchProducts(query, limit) {
     const n = limit || 8;
+    console.log('[JzAS v19.0.1.15] Suche:', query);
 
-    // 1. Custom Python Route (auth=public, sudo) — beste Option wenn registriert
+    // 1. Custom Python Route (auth=public, sudo)
     try {
         const r = await fetch('/jz_advanced_autosearch/search/products', {
             method: 'POST',
@@ -25,10 +26,14 @@ async function searchProducts(query, limit) {
             body: rpcBody({ query, limit: n }),
         });
         const d = await r.json();
-        if (!d.error && Array.isArray(d.result)) return d.result;
-    } catch (_) {}
+        if (!d.error && Array.isArray(d.result)) {
+            console.log('[JzAS] Methode 1 (Python Route) OK:', d.result.length, 'Produkte');
+            return d.result;
+        }
+        console.warn('[JzAS] Methode 1 fehlgeschlagen:', d.error || 'kein Array');
+    } catch (e) { console.warn('[JzAS] Methode 1 Exception:', e.message); }
 
-    // 2. Odoo native Autocomplete (auth=public, immer verfügbar in Odoo 17+)
+    // 2. Odoo native /website/snippet/autocomplete (auth=public)
     try {
         const r = await fetch('/website/snippet/autocomplete', {
             method: 'POST',
@@ -40,8 +45,11 @@ async function searchProducts(query, limit) {
                 options: { displayDescription: false, displayImage: true, displayPrice: true },
             }),
         });
+        console.log('[JzAS] Methode 2 HTTP Status:', r.status);
         const d = await r.json();
+        console.log('[JzAS] Methode 2 Response:', JSON.stringify(d).slice(0, 300));
         if (!d.error && d.result && Array.isArray(d.result.results)) {
+            console.log('[JzAS] Methode 2 OK:', d.result.results.length, 'Produkte');
             return d.result.results.map(p => ({
                 id: p.id || 0,
                 name: p.name || '',
@@ -50,24 +58,32 @@ async function searchProducts(query, limit) {
                 website_url: p.url || p.website_url || '/shop',
             }));
         }
-    } catch (_) {}
+        console.warn('[JzAS] Methode 2 unbekanntes Format:', d);
+    } catch (e) { console.warn('[JzAS] Methode 2 Exception:', e.message); }
 
-    // 3. call_kw Fallback (nur eingeloggte User)
-    const r = await fetch('/web/dataset/call_kw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-        body: rpcBody({
-            model: 'product.template', method: 'search_read', args: [],
-            kwargs: {
-                domain: [['name', 'ilike', query], ['sale_ok', '=', true], ['is_published', '=', true]],
-                fields: ['name', 'list_price', 'website_url'],
-                limit: n,
-            },
-        }),
-    });
-    const d = await r.json();
-    if (d.error) throw new Error(d.error.message || 'Suche fehlgeschlagen');
-    return d.result || [];
+    // 3. call_kw Fallback
+    try {
+        const r = await fetch('/web/dataset/call_kw', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: rpcBody({
+                model: 'product.template', method: 'search_read', args: [],
+                kwargs: {
+                    domain: [['name', 'ilike', query], ['sale_ok', '=', true], ['is_published', '=', true]],
+                    fields: ['name', 'list_price', 'website_url'],
+                    limit: n,
+                },
+            }),
+        });
+        const d = await r.json();
+        if (!d.error) {
+            console.log('[JzAS] Methode 3 (call_kw) OK:', (d.result || []).length, 'Produkte');
+            return d.result || [];
+        }
+        console.warn('[JzAS] Methode 3 Error:', d.error);
+    } catch (e) { console.warn('[JzAS] Methode 3 Exception:', e.message); }
+
+    throw new Error('Alle Suchmethoden fehlgeschlagen');
 }
 
 // -------------------------------------------------------------------------
