@@ -90,26 +90,34 @@ function escHtml(str) {
 }
 
 // -------------------------------------------------------------------------
+// Alle passenden Suchfelder sammeln (Header + Shop, aber NICHT Hero-Snippets)
+// -------------------------------------------------------------------------
+function findSearchInputs() {
+    const candidates = document.querySelectorAll(
+        '.o_searchbar_form input[name="search"], ' +
+        'form.o_wsale_products_searchbar_form input[name="search"], ' +
+        'form[action="/website/search"] input[name="search"], ' +
+        'form[action="/shop"] input[name="search"]'
+    );
+    return Array.from(candidates).filter(input => {
+        // Hero-Snippets (in <section>) ausschließen
+        if (input.closest('section')) return false;
+        // Noch nicht initialisiert
+        if (input.dataset.jzasSearch) return false;
+        return true;
+    });
+}
+
+// -------------------------------------------------------------------------
 // Haupt-Init
 // -------------------------------------------------------------------------
 function initJzAdvancedSearch() {
-    // Nur im Header suchen
-    const headerRoot = document.querySelector('header, #top, .o_header_standard') || document;
-    const selectors = [
-        '.o_searchbar_form input.o_searchbar_input',
-        '.o_searchbar_form input[name="search"]',
-        'form.o_wsale_products_searchbar_form input[name="search"]',
-        'form[action="/website/search"] input[name="search"]',
-        'form[action="/shop"] input[name="search"]',
-        'form input[name="search"]',
-    ];
+    const inputs = findSearchInputs();
+    inputs.forEach(input => attachSearch(input));
+}
 
-    let input = null;
-    for (const sel of selectors) {
-        input = headerRoot.querySelector(sel);
-        if (input) break;
-    }
-    if (!input || input.dataset.jzasSearch) return;
+function attachSearch(input) {
+    if (input.dataset.jzasSearch) return;
     input.dataset.jzasSearch = '1';
 
     const anchor = input.closest('form') || input.parentElement;
@@ -212,12 +220,6 @@ if (document.readyState === 'loading') {
 
 // MutationObserver: falls OWL das Input erst später rendert
 const _jzasObserver = new MutationObserver(() => {
-    const headerRoot = document.querySelector('header, #top, .o_header_standard') || document;
-    const input = headerRoot.querySelector(
-        '.o_searchbar_form input[name="search"], ' +
-        'form[action="/website/search"] input[name="search"], ' +
-        'form input[name="search"]'
-    );
-    if (input && !input.dataset.jzasSearch) initJzAdvancedSearch();
+    if (findSearchInputs().length > 0) initJzAdvancedSearch();
 });
 _jzasObserver.observe(document.body, { childList: true, subtree: true });
