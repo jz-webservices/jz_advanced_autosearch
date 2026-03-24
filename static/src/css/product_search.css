@@ -253,15 +253,10 @@ header .o_searchbar_form [class*='o_search_result'] {
 }
 
 .o_jzas_search_product_price_excl {
-    font-size: 11px;
-    color: #9ba8bb;
-    text-decoration: line-through;
-}
-
-.o_jzas_search_product_price_incl {
     font-size: 13px;
-    font-weight: 600;
-    color: #0073e6;
+    font-weight: 700;
+    color: #e05000;
+    text-decoration: none;
 }
 
 /* Pfeil */
