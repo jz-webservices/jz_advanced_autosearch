@@ -54,7 +54,6 @@ function buildDropdown(result, query) {
             </div>
             <div class="o_jzas_search_product_info">
                 <span class="o_jzas_search_product_name">${escHtml(p.name)}</span>
-                <span class="o_jzas_search_product_categ">${escHtml(p.categ_name || "")}</span>
                 <div class="o_jzas_search_product_prices">
                     <span class="o_jzas_search_product_price_excl">${escHtml(p.price_excl)} exkl. MwSt.</span>
                     <span class="o_jzas_search_product_price_incl">${escHtml(p.price_incl)} inkl. MwSt.</span>
@@ -89,22 +88,21 @@ function escHtml(str) {
 // Haupt-Init: hört auf bestehendes Native-Input, zeigt eigenes Dropdown
 // -------------------------------------------------------------------------
 function initJzAdvancedSearch() {
-    // Alle möglichen Odoo eCommerce Suchfelder (inkl. Odoo 19 OWL-Selektoren)
+    // Nur im Header suchen — nicht auf Seiten-Snippets wie Hero-Suchbalken
+    const headerRoot = document.querySelector("header, #top, .o_header_standard") || document;
     const selectors = [
         ".o_searchbar_form input.o_searchbar_input",
         ".o_searchbar_form input[name='search']",
         "form.o_wsale_products_searchbar_form input[name='search']",
-        "form.o_wsale_products_searchbar_form input",
         ".o_website_search_form input[name='search']",
+        "form[action='/website/search'] input[name='search']",
         "form[action='/shop'] input[name='search']",
-        "form[action='/shop'] input",
-        ".s_searchbar input",
         "form input[name='search']",
     ];
 
     let input = null;
     for (const sel of selectors) {
-        input = document.querySelector(sel);
+        input = headerRoot.querySelector(sel);
         if (input) break;
     }
 
@@ -196,13 +194,15 @@ if (document.readyState === "loading") {
 }
 
 // MutationObserver: falls Input durch OWL erst später in den DOM kommt
+// Nur im Header beobachten — nicht auf Seiten-Snippets reagieren
 const observer = new MutationObserver(() => {
-    const input = document.querySelector(
+    const headerRoot = document.querySelector("header, #top, .o_header_standard") || document;
+    const input = headerRoot.querySelector(
         ".o_searchbar_form input.o_searchbar_input, " +
         ".o_searchbar_form input[name='search'], " +
-        "form.o_wsale_products_searchbar_form input, " +
-        "form[action='/shop'] input, " +
-        ".s_searchbar input, " +
+        "form.o_wsale_products_searchbar_form input[name='search'], " +
+        "form[action='/website/search'] input[name='search'], " +
+        "form[action='/shop'] input[name='search'], " +
         "form input[name='search']"
     );
     if (input && !input.dataset.jzasSearch) {
