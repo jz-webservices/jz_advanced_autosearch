@@ -62,12 +62,17 @@ class JzAdvancedSearchProductSearch(http.Controller):
             image_url = '/web/image/product.template/%d/image_128' % p.id
 
             # Preis exkl. und inkl. MwSt. berechnen
+            # taxes_id (Odoo <17) oder tax_ids (Odoo 17+) — beide abfangen
             price_excl = p.list_price
-            taxes = p.taxes_id.filtered(lambda t: t.company_id == request.env.company)
-            if taxes:
-                tax_res = taxes.compute_all(price_excl, currency, 1, product=p)
-                price_incl = tax_res['total_included']
-            else:
+            try:
+                raw_taxes = getattr(p, 'taxes_id', None) or getattr(p, 'tax_ids', None)
+                taxes = raw_taxes.filtered(lambda t: t.company_id == request.env.company) if raw_taxes else None
+                if taxes:
+                    tax_res = taxes.compute_all(price_excl, currency, 1, product=p)
+                    price_incl = tax_res['total_included']
+                else:
+                    price_incl = price_excl
+            except Exception:
                 price_incl = price_excl
 
             product_list.append({

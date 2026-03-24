@@ -122,12 +122,24 @@ function initJzAdvancedSearch() {
     anchor.appendChild(dropdown);
 
     // Native Odoo Autocomplete-Dropdown per JS unterdrücken
-    // (CSS-Klasse unbekannt, daher alle fremden ul/div-Kinder verstecken)
+    // Bekannte Klassen aus DevTools: dropdown-item, o_search_result_item, dropdown-menu
     function suppressNativeDropdown() {
-        anchor.querySelectorAll("ul, [class*='autocomplete'], [class*='Autocomplete']").forEach(el => {
+        // Elternelement von .dropdown-item oder .o_search_result_item finden und verstecken
+        anchor.querySelectorAll(
+            ".dropdown-menu, ul.dropdown-menu, " +
+            "[class*='autocomplete'], [class*='Autocomplete'], " +
+            "[class*='o_search_result']"
+        ).forEach(el => {
             if (!el.classList.contains("o_jzas_search_dropdown") &&
                 !el.closest(".o_jzas_search_dropdown")) {
                 el.style.setProperty("display", "none", "important");
+            }
+        });
+        // Auch direkte dropdown-item Links verstecken (falls Container nicht gefunden)
+        anchor.querySelectorAll("a.dropdown-item").forEach(el => {
+            const parent = el.parentElement;
+            if (parent && !parent.classList.contains("o_jzas_search_dropdown")) {
+                parent.style.setProperty("display", "none", "important");
             }
         });
     }

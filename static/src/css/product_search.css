@@ -6,7 +6,10 @@
 .o_searchbar_autocomplete,
 .o_website_searchbar_autocomplete,
 ul.o_searchbar_autocomplete,
-.s_searchbar_input .o_searchbar_autocomplete {
+.s_searchbar_input .o_searchbar_autocomplete,
+header .o_searchbar_form .dropdown-menu,
+header .o_searchbar_form ul,
+header .o_searchbar_form [class*='o_search_result'] {
     display: none !important;
 }
 
