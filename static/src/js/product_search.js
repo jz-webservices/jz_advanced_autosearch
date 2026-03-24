@@ -121,6 +121,20 @@ function initJzAdvancedSearch() {
     dropdown.style.display = "none";
     anchor.appendChild(dropdown);
 
+    // Native Odoo Autocomplete-Dropdown per JS unterdrücken
+    // (CSS-Klasse unbekannt, daher alle fremden ul/div-Kinder verstecken)
+    function suppressNativeDropdown() {
+        anchor.querySelectorAll("ul, [class*='autocomplete'], [class*='Autocomplete']").forEach(el => {
+            if (!el.classList.contains("o_jzas_search_dropdown") &&
+                !el.closest(".o_jzas_search_dropdown")) {
+                el.style.setProperty("display", "none", "important");
+            }
+        });
+    }
+    suppressNativeDropdown();
+    const nativeSuppressor = new MutationObserver(suppressNativeDropdown);
+    nativeSuppressor.observe(anchor, { childList: true, subtree: true });
+
     let debounceTimer = null;
     let lastQuery = "";
 
