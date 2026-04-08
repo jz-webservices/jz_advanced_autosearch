@@ -2,11 +2,13 @@
 <templates xml:space="preserve">
 
     <!--
-        Stellt das native Odoo-Template bereit das in dieser Instanz fehlt.
-        Verhindert den OwlError "Missing template: website.s_searchbar.autocomplete".
-        Das eigentliche Dropdown wird durch unser Vanilla-JS übernommen.
+        Überschreibt das native Odoo-Template mit leerem Inhalt.
+        Verhindert das native OWL-Dropdown — das eigentliche Dropdown
+        wird durch unser Vanilla-JS übernommen.
+        Verwendet t-inherit statt t-name um "already exists"-Konflikt zu vermeiden.
     -->
-    <t t-name="website.s_searchbar.autocomplete" owl="1">
+    <t t-inherit="website.s_searchbar.autocomplete" t-inherit-mode="extension" owl="1">
+        <xpath expr="." position="replace"><t/></xpath>
     </t>
 
 </templates>
