@@ -16,7 +16,7 @@ function rpcBody(params) {
 
 async function searchProducts(query, limit) {
     const n = limit || 8;
-    console.log('[JzAS v19.0.1.15] Suche:', query);
+    console.log('[JzAS v19.0.1.22] Suche:', query);
 
     // 1. Custom Python Route (auth=public, sudo)
     try {
@@ -25,6 +25,8 @@ async function searchProducts(query, limit) {
             headers: { 'Content-Type': 'application/json' },
             body: rpcBody({ query, limit: n }),
         });
+        const ct = r.headers.get('content-type') || '';
+        if (!r.ok || !ct.includes('json')) throw new Error('HTTP ' + r.status + ' – kein JSON');
         const d = await r.json();
         if (!d.error && Array.isArray(d.result)) {
             console.log('[JzAS] Methode 1 (Python Route) OK:', d.result.length, 'Produkte');
@@ -258,12 +260,17 @@ function attachSearch(input) {
         }
     }
 
+    // Capture-Phase: läuft vor OWL's Bubble-Phase onInput-Handler.
+    // stopImmediatePropagation verhindert, dass OWL seinen Autocomplete
+    // rendert (und dabei nach dem Template sucht) – egal ob das Template
+    // in dieser Odoo-Version existiert oder nicht.
     input.addEventListener('input', (e) => {
+        e.stopImmediatePropagation();
         const query = e.target.value.trim();
         if (debounceTimer) clearTimeout(debounceTimer);
         if (!query) { closeDropdown(); return; }
         debounceTimer = setTimeout(() => fetchAndRender(query), 300);
-    });
+    }, true);
 
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeDropdown();
