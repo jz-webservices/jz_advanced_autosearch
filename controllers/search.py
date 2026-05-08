@@ -7,7 +7,7 @@ class JzAdvancedSearchProductSearch(http.Controller):
 
     @http.route(
         '/jz_advanced_autosearch/search/products',
-        type='jsonrpc',
+        type='json',
         auth='public',
         methods=['POST'],
         website=True,
